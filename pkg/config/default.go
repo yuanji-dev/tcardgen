@@ -35,7 +35,7 @@ var defaultCnf = DrawingConfig{
 		TimeFormat: "Jan 2",
 	},
 	Tags: &BoxTextsOption{
-		Enabled:    ptrBool(true),
+		Enabled: ptrBool(true),
 		TextOption: TextOption{
 			Start:      &Point{X: 1025, Y: 451},
 			FgHexColor: "#FFFFFF",
@@ -148,5 +148,5 @@ func ptrInt(x int) *int {
 }
 
 func ptrBool(b bool) *bool {
-    return &b
+	return &b
 }

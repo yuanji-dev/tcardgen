@@ -9,7 +9,7 @@ title:
   maxWidth: 946
   lineSpacing: 10
 category:
-  enabled: true
+  enabled: false
   start:
     px: 126
     py: 119
@@ -17,7 +17,7 @@ category:
   fontSize: 42
   fontStyle: Regular
 info:
-  enabled: true
+  enabled: false
   start:
     px: 227
     py: 441

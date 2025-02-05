@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Ladicle/tcardgen/pkg/config"
 	"github.com/gohugoio/hugo/parser/pageparser"
 	"github.com/pkg/errors"
 )
@@ -36,17 +37,17 @@ type FrontMatter struct {
 }
 
 // ParseFrontMatter parses the frontmatter of the specified Hugo content.
-func ParseFrontMatter(w io.Writer, filename string, currentTime time.Time) (*FrontMatter, error) {
+func ParseFrontMatter(w io.Writer, filename string, currentTime time.Time, cnf *config.DrawingConfig) (*FrontMatter, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	return parseFrontMatter(w, file, currentTime)
+	return parseFrontMatter(w, file, currentTime, cnf)
 }
 
-func parseFrontMatter(w io.Writer, r io.Reader, currentTime time.Time) (*FrontMatter, error) {
+func parseFrontMatter(w io.Writer, r io.Reader, currentTime time.Time, cnf *config.DrawingConfig) (*FrontMatter, error) {
 	cfm, err := pageparser.ParseFrontMatterAndContent(r)
 	if err != nil {
 		return nil, err
@@ -56,27 +57,38 @@ func parseFrontMatter(w io.Writer, r io.Reader, currentTime time.Time) (*FrontMa
 	if fm.Title, err = getString(&cfm, fmTitle); err != nil {
 		return nil, err
 	}
-	if isArray := isArray(&cfm, fmAuthor); isArray {
-		if fm.Author, err = getFirstStringItem(&cfm, fmAuthor); err != nil {
-			return nil, err
+
+	if *cnf.Info.Enabled != false {
+		if isArray := isArray(&cfm, fmAuthor); isArray {
+			if fm.Author, err = getFirstStringItem(&cfm, fmAuthor); err != nil {
+				return nil, err
+			}
+		} else {
+			if fm.Author, err = getString(&cfm, fmAuthor); err != nil {
+				return nil, err
+			}
 		}
-	} else {
-		if fm.Author, err = getString(&cfm, fmAuthor); err != nil {
+
+	}
+
+	if *cnf.Category.Enabled != false {
+		if isArray := isArray(&cfm, fmCategories); isArray {
+			if fm.Category, err = getFirstStringItem(&cfm, fmCategories); err != nil {
+				return nil, err
+			}
+		} else {
+			if fm.Category, err = getString(&cfm, fmCategories); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if *cnf.Tags.Enabled != false {
+		if fm.Tags, err = getAllStringItems(&cfm, fmTags); err != nil {
 			return nil, err
 		}
 	}
-	if isArray := isArray(&cfm, fmCategories); isArray {
-		if fm.Category, err = getFirstStringItem(&cfm, fmCategories); err != nil {
-			return nil, err
-		}
-	} else {
-		if fm.Category, err = getString(&cfm, fmCategories); err != nil {
-			return nil, err
-		}
-	}
-	if fm.Tags, err = getAllStringItems(&cfm, fmTags); err != nil {
-		return nil, err
-	}
+
 	if fm.Date, err = getContentDate(&cfm, currentTime); err != nil {
 		var fe *FMNotExistError
 		if errors.As(err, &fe) {

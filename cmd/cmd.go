@@ -163,7 +163,7 @@ func (o *RootCommandOption) Run(streams IOStreams, currentTime time.Time) error 
 }
 
 func generateTCard(streams IOStreams, contentPath, outPath string, tpl image.Image, ffa *fontfamily.FontFamily, cnf *config.DrawingConfig, currentTime time.Time) error {
-	fm, err := hugo.ParseFrontMatter(streams.Out, contentPath, currentTime)
+	fm, err := hugo.ParseFrontMatter(streams.Out, contentPath, currentTime, cnf)
 	if err != nil {
 		return err
 	}
@@ -188,33 +188,39 @@ func generateTCard(streams IOStreams, contentPath, outPath string, tpl image.Ima
 	); err != nil {
 		return err
 	}
-	if err := c.DrawTextAtPoint(
-		strings.ToUpper(fm.Category),
-		*cnf.Category.Start,
-		canvas.FgHexColor(cnf.Category.FgHexColor),
-		canvas.FontFaceFromFFA(ffa, cnf.Category.FontStyle, cnf.Category.FontSize),
-	); err != nil {
-		return err
+	if *cnf.Category.Enabled != false {
+		if err := c.DrawTextAtPoint(
+			strings.ToUpper(fm.Category),
+			*cnf.Category.Start,
+			canvas.FgHexColor(cnf.Category.FgHexColor),
+			canvas.FontFaceFromFFA(ffa, cnf.Category.FontStyle, cnf.Category.FontSize),
+		); err != nil {
+			return err
+		}
 	}
-	if err := c.DrawTextAtPoint(
-		fmt.Sprintf("%s%s%s", fm.Author, cnf.Info.Separator, fm.Date.Format(cnf.Info.TimeFormat)),
-		*cnf.Info.Start,
-		canvas.FgHexColor(cnf.Info.FgHexColor),
-		canvas.FontFaceFromFFA(ffa, cnf.Info.FontStyle, cnf.Info.FontSize),
-	); err != nil {
-		return err
+	if *cnf.Info.Enabled != false {
+		if err := c.DrawTextAtPoint(
+			fmt.Sprintf("%s%s%s", fm.Author, cnf.Info.Separator, fm.Date.Format(cnf.Info.TimeFormat)),
+			*cnf.Info.Start,
+			canvas.FgHexColor(cnf.Info.FgHexColor),
+			canvas.FontFaceFromFFA(ffa, cnf.Info.FontStyle, cnf.Info.FontSize),
+		); err != nil {
+			return err
+		}
 	}
-	if err := c.DrawBoxTexts(
-		tags,
-		*cnf.Tags.Start,
-		canvas.FgHexColor(cnf.Tags.FgHexColor),
-		canvas.BgHexColor(cnf.Tags.BgHexColor),
-		canvas.BoxPadding(*cnf.Tags.BoxPadding),
-		canvas.BoxSpacing(*cnf.Tags.BoxSpacing),
-		canvas.BoxAlign(cnf.Tags.BoxAlign),
-		canvas.FontFaceFromFFA(ffa, cnf.Tags.FontStyle, cnf.Tags.FontSize),
-	); err != nil {
-		return err
+	if *cnf.Tags.Enabled != false {
+		if err := c.DrawBoxTexts(
+			tags,
+			*cnf.Tags.Start,
+			canvas.FgHexColor(cnf.Tags.FgHexColor),
+			canvas.BgHexColor(cnf.Tags.BgHexColor),
+			canvas.BoxPadding(*cnf.Tags.BoxPadding),
+			canvas.BoxSpacing(*cnf.Tags.BoxSpacing),
+			canvas.BoxAlign(cnf.Tags.BoxAlign),
+			canvas.FontFaceFromFFA(ffa, cnf.Tags.FontStyle, cnf.Tags.FontSize),
+		); err != nil {
+			return err
+		}
 	}
 
 	return c.SaveAsPNG(outPath)
